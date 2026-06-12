@@ -453,19 +453,38 @@ with tabs[0]:
 
     with col_right:
         st.markdown('<div class="section-header">Quality Scorecard</div>', unsafe_allow_html=True)
-        scores_df = pd.DataFrame({
-            "Dimension": ["Business Quality", "Balance Sheet", "Cash Flow Quality",
-                          "Economic Moat", "Management", "COMPOSITE"],
-            "Score": [
-                f"{d['business_quality_score']} / 10",
-                f"{d['balance_sheet_score']} / 10",
-                f"{d['cashflow_quality_score']} / 10",
-                f"{d['moat_score']} / 10  ({d['moat_label']})",
-                f"{d['mgmt_score']} / 10",
-                f"{d['composite_score']} / 10",
-            ],
-        })
-        st.dataframe(scores_df, hide_index=True, use_container_width=True)
+        score_items = [
+            ("Business Quality", d['business_quality_score'], ""),
+            ("Balance Sheet",    d['balance_sheet_score'],    ""),
+            ("Cash Flow Quality",d['cashflow_quality_score'], ""),
+            ("Economic Moat",    d['moat_score'],             d['moat_label']),
+            ("Management",       d['mgmt_score'],             ""),
+            ("COMPOSITE",        d['composite_score'],        ""),
+        ]
+        rows_html = ""
+        for label, score, sub in score_items:
+            score_num = float(score) if score else 0
+            bar_pct = score_num / 10 * 100
+            bar_color = "#3dba70" if score_num >= 7 else ("#c8a951" if score_num >= 5 else "#e05555")
+            is_composite = label == "COMPOSITE"
+            rows_html += f"""
+            <div style="margin-bottom:8px; padding:8px 10px;
+                        background:{'#252510' if is_composite else '#1c1c1c'};
+                        border:1px solid {'#c8a951' if is_composite else '#2a2a2a'};
+                        border-radius:6px;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                    <span style="color:#c8a951; font-size:0.78rem; font-weight:{'900' if is_composite else '600'};">
+                        {label}
+                    </span>
+                    <span style="color:#f0e094; font-size:0.78rem; font-weight:700;">
+                        {score} / 10 {'· ' + sub if sub else ''}
+                    </span>
+                </div>
+                <div style="background:#2a2a2a; border-radius:3px; height:5px;">
+                    <div style="background:{bar_color}; width:{bar_pct:.0f}%; height:5px; border-radius:3px;"></div>
+                </div>
+            </div>"""
+        st.markdown(rows_html, unsafe_allow_html=True)
 
         st.markdown('<div class="section-header">52-Week Range</div>', unsafe_allow_html=True)
         w_low = d.get("week_52_low")
