@@ -230,7 +230,12 @@ st.markdown("""
 st.markdown("""
 <div class="gs-header">
     <h1>📊 Equity Research Dashboard</h1>
-    <p>Institutional-Grade Fundamental Analysis · Powered by Yahoo Finance · Goldman Sachs Style</p>
+    <p>Institutional-Grade Fundamental Analysis · Powered by Yahoo Finance · Goldman Sachs Style ·
+        <span style="background:#22c55e; color:white; font-size:0.75rem; font-weight:700;
+                     padding:2px 9px; border-radius:20px; margin-left:4px; letter-spacing:1px;">
+            ● LIVE DATA
+        </span>
+    </p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -395,7 +400,13 @@ st.markdown(f"""
             <div style="font-size:0.85rem; opacity:0.85;">Conviction: {d['conviction']} / 10</div>
         </div>
         <div style="text-align:right;">
-            <div style="font-size:0.8rem; opacity:0.8;">Current Price</div>
+            <div style="font-size:0.8rem; opacity:0.8;">
+                Current Price
+                <span style="background:#22c55e; color:white; font-size:0.65rem; font-weight:700;
+                             padding:2px 7px; border-radius:20px; margin-left:6px; letter-spacing:1px;">
+                    ● LIVE
+                </span>
+            </div>
             <div style="font-size:1.8rem; font-weight:700;">{fmt_large(d.get('price'), sym)}</div>
             <div style="font-size:0.9rem; opacity:0.85;">Target: {fmt_large(d.get('target_mean'), sym)}
                 <span style="background:rgba(255,255,255,0.2); padding:2px 8px; border-radius:10px;">
