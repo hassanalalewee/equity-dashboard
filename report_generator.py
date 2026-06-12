@@ -8,6 +8,7 @@ import yfinance as yf
 import pandas as pd
 import numpy as np
 from datetime import datetime
+import time
 
 # ---------------------------------------------------------------------------
 # SECTOR PEER MAP
@@ -243,10 +244,22 @@ def fetch_stock_data(ticker_symbol: str) -> dict:
     ticker_symbol = ticker_symbol.strip().upper()
     t = yf.Ticker(ticker_symbol)
 
-    try:
-        info = t.info or {}
-    except Exception:
-        info = {}
+    # Retry up to 3 times on rate limit
+    info = {}
+    for attempt in range(3):
+        try:
+            info = t.info or {}
+            if info and isinstance(info, dict) and len(info) > 1:
+                break
+        except Exception as e:
+            if "too many requests" in str(e).lower() or "rate limit" in str(e).lower():
+                if attempt < 2:
+                    time.sleep(3 + attempt * 2)
+                    continue
+            raise
+        if attempt < 2:
+            time.sleep(2)
+
     if not info or not isinstance(info, dict) or len(info) <= 1:
         raise ValueError(f"Ticker '{ticker_symbol}' not found or data unavailable. Please check the symbol.")
 

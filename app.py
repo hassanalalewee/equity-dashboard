@@ -396,7 +396,14 @@ if analyze_btn and ticker_input:
             else:
                 st.session_state.pop("search_candidates", None)
         except Exception as e:
-            st.error(f"❌ Could not fetch data for **{ticker_clean}**: {str(e)}")
+            err = str(e).lower()
+            if "too many requests" in err or "rate limit" in err:
+                st.warning(
+                    f"⏳ **Yahoo Finance is temporarily rate-limiting requests.** "
+                    f"Please wait 10–15 seconds and try again. This is a Yahoo Finance limit, not an app error."
+                )
+            else:
+                st.error(f"❌ Could not fetch data for **{ticker_clean}**: {str(e)}")
             st.session_state["data"] = None
 
 # ---------------------------------------------------------------------------
