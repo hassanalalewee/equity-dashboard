@@ -21,6 +21,27 @@ from charts import (
 )
 from pdf_exporter import generate_pdf
 
+
+def dark_table(rows: list[dict]):
+    """Render a list of dicts as a dark-themed HTML table."""
+    if not rows:
+        return
+    headers = list(rows[0].keys())
+    html = "<table style='width:100%; border-collapse:collapse; font-size:0.82rem;'>"
+    html += "<tr>"
+    for h in headers:
+        html += f"<th style='padding:7px 10px; background:#252520; color:#c8a951; font-weight:700; border-bottom:2px solid #c8a951; text-align:left;'>{h}</th>"
+    html += "</tr>"
+    for i, row in enumerate(rows):
+        bg = "#1c1c1c" if i % 2 == 0 else "#161616"
+        html += f"<tr style='background:{bg};'>"
+        for j, val in enumerate(row.values()):
+            color = "#c8a951" if j == 0 else "#f0e094"
+            html += f"<td style='padding:6px 10px; color:{color}; border-bottom:1px solid #2a2a2a;'>{val}</td>"
+        html += "</tr>"
+    html += "</table>"
+    st.markdown(html, unsafe_allow_html=True)
+
 # ---------------------------------------------------------------------------
 # PAGE CONFIG
 # ---------------------------------------------------------------------------
@@ -441,15 +462,32 @@ with tabs[0]:
         st.write(d.get("description", "No description available.")[:1000])
 
         st.markdown('<div class="section-header">Company Profile</div>', unsafe_allow_html=True)
-        profile_df = pd.DataFrame({
-            "Field": ["Company", "Ticker", "Sector", "Industry", "Country",
-                      "Employees", "Exchange", "Currency"],
-            "Value": [d["name"], d["ticker"], d["sector"], d["industry"],
-                      d.get("country", "N/A"),
-                      f"{d.get('employees'):,}" if d.get("employees") else "N/A",
-                      d.get("exchange", "N/A"), d.get("currency", "N/A")],
-        })
-        st.dataframe(profile_df, hide_index=True, use_container_width=True)
+        profile_items = [
+            ("Company",   d["name"]),
+            ("Ticker",    d["ticker"]),
+            ("Sector",    d["sector"]),
+            ("Industry",  d["industry"]),
+            ("Country",   d.get("country", "N/A")),
+            ("Employees", f"{d.get('employees'):,}" if d.get("employees") else "N/A"),
+            ("Exchange",  d.get("exchange", "N/A")),
+            ("Currency",  d.get("currency", "N/A")),
+        ]
+        profile_html = "<table style='width:100%; border-collapse:collapse;'>"
+        for i, (field, value) in enumerate(profile_items):
+            bg = "#1c1c1c" if i % 2 == 0 else "#161616"
+            profile_html += f"""
+            <tr style="background:{bg};">
+                <td style="padding:7px 10px; color:#c8a951; font-size:0.8rem;
+                           font-weight:600; width:38%; border-bottom:1px solid #2a2a2a;">
+                    {field}
+                </td>
+                <td style="padding:7px 10px; color:#f0e094; font-size:0.8rem;
+                           border-bottom:1px solid #2a2a2a;">
+                    {value}
+                </td>
+            </tr>"""
+        profile_html += "</table>"
+        st.markdown(profile_html, unsafe_allow_html=True)
 
     with col_right:
         st.markdown('<div class="section-header">Quality Scorecard</div>', unsafe_allow_html=True)
@@ -539,9 +577,7 @@ with tabs[1]:
                 "Gross Profit": fmt_large(gp, sym) if gp else "N/A",
                 "Gross Margin": fmt_pct(gm) if gm else "N/A",
             })
-        st.dataframe(pd.DataFrame(rows), hide_index=True, use_container_width=True)
-
-    st.markdown('<div class="section-header">Key Growth Drivers</div>', unsafe_allow_html=True)
+        dark_table(rows)
     for i, cat in enumerate(d.get("catalysts", []), 1):
         st.markdown(f"**{i}.** {cat}")
 
@@ -561,7 +597,7 @@ with tabs[2]:
                 "Operating Margin": fmt_pct(d["operating_margins"].get(y)),
                 "Net Margin": fmt_pct(d["net_margins"].get(y)),
             })
-        st.dataframe(pd.DataFrame(rows), hide_index=True, use_container_width=True)
+        dark_table(rows)
 
     col1, col2, col3 = st.columns(3)
     col1.metric("ROE", fmt_pct(d.get("roe")))
@@ -584,8 +620,7 @@ with tabs[3]:
             "Current Assets": fmt_large(d.get("current_assets"), sym),
             "Current Liabilities": fmt_large(d.get("current_liabilities"), sym),
         }
-        st.dataframe(pd.DataFrame(bs_rows.items(), columns=["Metric", "Value"]),
-                     hide_index=True, use_container_width=True)
+        dark_table([{"Metric": k, "Value": v} for k, v in bs_rows.items()])
 
     with col2:
         st.markdown('<div class="section-header">Key Ratios</div>', unsafe_allow_html=True)
@@ -597,8 +632,7 @@ with tabs[3]:
             "ROIC": fmt_pct(d.get("roic")),
             "Balance Sheet Score": f"{d.get('balance_sheet_score')} / 10",
         }
-        st.dataframe(pd.DataFrame(ratio_rows.items(), columns=["Ratio", "Value"]),
-                     hide_index=True, use_container_width=True)
+        dark_table([{"Ratio": k, "Value": v} for k, v in ratio_rows.items()])
 
         # Net cash meter
         net_cash = d.get("net_cash")
@@ -636,7 +670,7 @@ with tabs[4]:
                 "Free Cash Flow": fmt_large(fcf_y, sym),
                 "FCF Margin": fmt_pct(fcf_m),
             })
-        st.dataframe(pd.DataFrame(rows), hide_index=True, use_container_width=True)
+        dark_table(rows)
 
     col1, col2, col3 = st.columns(3)
     col1.metric("FCF Yield", fmt_pct(d.get("fcf_yield")))
@@ -664,8 +698,7 @@ with tabs[5]:
             "FCF Yield": fmt_pct(d.get("fcf_yield")),
             "Dividend Yield": fmt_pct(d.get("dividend_yield")),
         }
-        st.dataframe(pd.DataFrame(val_rows.items(), columns=["Metric", "Value"]),
-                     hide_index=True, use_container_width=True)
+        dark_table([{"Metric": k, "Value": v} for k, v in val_rows.items()])
 
         # Valuation verdict badge
         verdict = d.get("valuation_verdict", "Fairly Valued")
@@ -693,20 +726,12 @@ with tabs[6]:
 
     scenarios = d.get("scenarios")
     if scenarios:
-        scenario_df = pd.DataFrame({
-            "Scenario": ["BEAR CASE", "BASE CASE", "BULL CASE"],
-            "Probability": [scenarios["bear"]["prob"], scenarios["base"]["prob"], scenarios["bull"]["prob"]],
-            "Revenue Growth": [scenarios["bear"]["growth"], scenarios["base"]["growth"], scenarios["bull"]["growth"]],
-            "Op. Margin": [scenarios["bear"]["margin"], scenarios["base"]["margin"], scenarios["bull"]["margin"]],
-            "Multiple": [scenarios["bear"]["multiple"], scenarios["base"]["multiple"], scenarios["bull"]["multiple"]],
-            "Price Target": [
-                f"{sym}{scenarios['bear']['target']:.2f}",
-                f"{sym}{scenarios['base']['target']:.2f}",
-                f"{sym}{scenarios['bull']['target']:.2f}",
-            ],
-            "Expected Return": [scenarios["bear"]["return"], scenarios["base"]["return"], scenarios["bull"]["return"]],
-        })
-        st.dataframe(scenario_df, hide_index=True, use_container_width=True)
+        scenario_rows = [
+            {"Scenario": "BEAR CASE", "Probability": scenarios["bear"]["prob"], "Rev Growth": scenarios["bear"]["growth"], "Op. Margin": scenarios["bear"]["margin"], "Multiple": scenarios["bear"]["multiple"], "Price Target": f"{sym}{scenarios['bear']['target']:.2f}", "Expected Return": scenarios["bear"]["return"]},
+            {"Scenario": "BASE CASE", "Probability": scenarios["base"]["prob"], "Rev Growth": scenarios["base"]["growth"], "Op. Margin": scenarios["base"]["margin"], "Multiple": scenarios["base"]["multiple"], "Price Target": f"{sym}{scenarios['base']['target']:.2f}", "Expected Return": scenarios["base"]["return"]},
+            {"Scenario": "BULL CASE", "Probability": scenarios["bull"]["prob"], "Rev Growth": scenarios["bull"]["growth"], "Op. Margin": scenarios["bull"]["margin"], "Multiple": scenarios["bull"]["multiple"], "Price Target": f"{sym}{scenarios['bull']['target']:.2f}", "Expected Return": scenarios["bull"]["return"]},
+        ]
+        dark_table(scenario_rows)
 
         pw = d.get("pw_target")
         if pw:
