@@ -3,6 +3,7 @@ report_generator.py
 Fetches data from Yahoo Finance via yfinance and computes all metrics
 for the institutional equity research report.
 """
+import streamlit as st
 
 import yfinance as yf
 import pandas as pd
@@ -236,6 +237,7 @@ def resolve_input(raw: str) -> tuple[str, list[dict]]:
 # ---------------------------------------------------------------------------
 # MAIN DATA FETCHER
 # ---------------------------------------------------------------------------
+@st.cache_data(ttl=900, show_spinner=False)
 def fetch_stock_data(ticker_symbol: str) -> dict:
     """
     Fetches all data from yfinance and computes derived metrics.
