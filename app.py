@@ -10,6 +10,7 @@ import pandas as pd
 import os
 import sys
 import traceback
+from datetime import datetime, timezone
 
 # Add directory to path
 sys.path.insert(0, os.path.dirname(__file__))
@@ -225,17 +226,94 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ---------------------------------------------------------------------------
+# DISCLAIMER POPUP — shown once per session
+# ---------------------------------------------------------------------------
+if "disclaimer_accepted" not in st.session_state:
+    st.session_state["disclaimer_accepted"] = False
+
+if not st.session_state["disclaimer_accepted"]:
+    st.markdown("""
+    <div style="position:fixed; top:0; left:0; width:100%; height:100%;
+                background:rgba(0,0,0,0.82); z-index:9999;
+                display:flex; align-items:center; justify-content:center;">
+    </div>
+    """, unsafe_allow_html=True)
+    with st.container():
+        st.markdown("""
+        <div style="background:#1c1c1c; border:2px solid #c8a951; border-radius:12px;
+                    padding:36px 40px; max-width:600px; margin:80px auto;">
+            <div style="text-align:center; margin-bottom:20px;">
+                <span style="font-size:2.5rem;">⚠️</span>
+                <h2 style="color:#c8a951; margin:8px 0;">Important Disclaimer</h2>
+            </div>
+            <p style="color:#f0e094; font-size:0.95rem; line-height:1.7; text-align:center;">
+                This dashboard is for <strong style="color:#e8d48a;">informational and research purposes only.</strong><br><br>
+                All recommendations, scores, and price targets are <strong style="color:#e8d48a;">generated automatically</strong>
+                based on publicly available data from Yahoo Finance.<br><br>
+                <strong style="color:#ff9955;">This is NOT financial advice.</strong>
+                The decision to buy, sell, or hold any security is
+                <strong style="color:#e8d48a;">solely your own responsibility.</strong><br><br>
+                Past performance does not guarantee future results.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+        col_a, col_b, col_c = st.columns([1, 2, 1])
+        with col_b:
+            if st.button("✅  I Understand — Continue to Dashboard", use_container_width=True, type="primary"):
+                st.session_state["disclaimer_accepted"] = True
+                st.rerun()
+    st.stop()
+
+# ---------------------------------------------------------------------------
+# MARKET STATUS & FETCH TIME HELPERS
+# ---------------------------------------------------------------------------
+def market_status():
+    """Return (label, color) based on NYSE trading hours (UTC)."""
+    now = datetime.now(timezone.utc)
+    weekday = now.weekday()  # 0=Mon, 6=Sun
+    hour = now.hour + now.minute / 60
+    # NYSE: 13:30–20:00 UTC (9:30am–4:00pm ET), Mon–Fri
+    if weekday < 5 and 13.5 <= hour < 20.0:
+        return "Market Open", "#22c55e"
+    elif weekday < 5 and (12.0 <= hour < 13.5):
+        return "Pre-Market", "#f59e0b"
+    elif weekday < 5 and (20.0 <= hour < 24.0):
+        return "After-Hours", "#f59e0b"
+    else:
+        return "Market Closed", "#ef4444"
+
+market_label, market_color = market_status()
+fetch_time = datetime.now(timezone.utc).strftime("%H:%M UTC")
+
+# ---------------------------------------------------------------------------
 # HEADER
 # ---------------------------------------------------------------------------
-st.markdown("""
+st.markdown(f"""
 <div class="gs-header">
-    <h1>📊 Equity Research Dashboard</h1>
-    <p>Institutional-Grade Fundamental Analysis · Powered by Yahoo Finance · Goldman Sachs Style ·
-        <span style="background:#22c55e; color:white; font-size:0.75rem; font-weight:700;
-                     padding:2px 9px; border-radius:20px; margin-left:4px; letter-spacing:1px;">
-            ● LIVE DATA
-        </span>
-    </p>
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+        <div>
+            <h1 style="margin:0;">📊 Equity Research Dashboard</h1>
+            <p style="margin:4px 0 0 0;">
+                Institutional-Grade Fundamental Analysis · Powered by Yahoo Finance · Goldman Sachs Style ·
+                <span style="background:#22c55e; color:white; font-size:0.72rem; font-weight:700;
+                             padding:2px 9px; border-radius:20px; margin-left:4px; letter-spacing:1px;">
+                    ● LIVE DATA
+                </span>
+            </p>
+        </div>
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+            <span style="background:{market_color}22; border:1px solid {market_color};
+                         color:{market_color}; font-size:0.78rem; font-weight:700;
+                         padding:5px 12px; border-radius:20px; letter-spacing:0.5px;">
+                ● {market_label}
+            </span>
+            <span style="background:#1c1c1c; border:1px solid #3a3a2a;
+                         color:#9a844a; font-size:0.75rem;
+                         padding:5px 12px; border-radius:20px;">
+                🕐 {fetch_time}
+            </span>
+        </div>
+    </div>
 </div>
 """, unsafe_allow_html=True)
 
