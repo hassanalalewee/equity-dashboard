@@ -243,9 +243,12 @@ def fetch_stock_data(ticker_symbol: str) -> dict:
     ticker_symbol = ticker_symbol.strip().upper()
     t = yf.Ticker(ticker_symbol)
 
-    info = t.info or {}
-    if not info or sg(info, "symbol") is None:
-        raise ValueError(f"Ticker '{ticker_symbol}' not found. Please check the symbol.")
+    try:
+        info = t.info or {}
+    except Exception:
+        info = {}
+    if not info or not isinstance(info, dict) or len(info) <= 1:
+        raise ValueError(f"Ticker '{ticker_symbol}' not found or data unavailable. Please check the symbol.")
 
     # -----------------------------------------------------------------------
     # BASIC INFO
