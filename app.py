@@ -226,42 +226,33 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ---------------------------------------------------------------------------
-# DISCLAIMER POPUP — shown once per session
+# DISCLAIMER — shown once per session
 # ---------------------------------------------------------------------------
 if "disclaimer_accepted" not in st.session_state:
     st.session_state["disclaimer_accepted"] = False
 
 if not st.session_state["disclaimer_accepted"]:
     st.markdown("""
-    <div style="position:fixed; top:0; left:0; width:100%; height:100%;
-                background:rgba(0,0,0,0.82); z-index:9999;
-                display:flex; align-items:center; justify-content:center;">
+    <div style="background:#1c1c1c; border:2px solid #c8a951; border-radius:12px;
+                padding:32px 36px; max-width:640px; margin:60px auto 0 auto; text-align:center;">
+        <div style="font-size:2.5rem; margin-bottom:10px;">⚠️</div>
+        <h2 style="color:#c8a951; margin:0 0 16px 0; font-size:1.4rem;">Important Disclaimer</h2>
+        <p style="color:#f0e094; font-size:0.92rem; line-height:1.8; margin-bottom:20px;">
+            This dashboard is for <strong style="color:#e8d48a;">informational and research purposes only.</strong><br>
+            All recommendations, scores, and price targets are <strong style="color:#e8d48a;">generated automatically</strong>
+            based on publicly available data from Yahoo Finance.<br><br>
+            <strong style="color:#ff9955; font-size:1rem;">This is NOT financial advice.</strong><br>
+            The decision to buy, sell, or hold any security is
+            <strong style="color:#e8d48a;">solely your own responsibility.</strong><br><br>
+            <span style="color:#9a844a; font-size:0.82rem;">Past performance does not guarantee future results.</span>
+        </p>
     </div>
     """, unsafe_allow_html=True)
-    with st.container():
-        st.markdown("""
-        <div style="background:#1c1c1c; border:2px solid #c8a951; border-radius:12px;
-                    padding:36px 40px; max-width:600px; margin:80px auto;">
-            <div style="text-align:center; margin-bottom:20px;">
-                <span style="font-size:2.5rem;">⚠️</span>
-                <h2 style="color:#c8a951; margin:8px 0;">Important Disclaimer</h2>
-            </div>
-            <p style="color:#f0e094; font-size:0.95rem; line-height:1.7; text-align:center;">
-                This dashboard is for <strong style="color:#e8d48a;">informational and research purposes only.</strong><br><br>
-                All recommendations, scores, and price targets are <strong style="color:#e8d48a;">generated automatically</strong>
-                based on publicly available data from Yahoo Finance.<br><br>
-                <strong style="color:#ff9955;">This is NOT financial advice.</strong>
-                The decision to buy, sell, or hold any security is
-                <strong style="color:#e8d48a;">solely your own responsibility.</strong><br><br>
-                Past performance does not guarantee future results.
-            </p>
-        </div>
-        """, unsafe_allow_html=True)
-        col_a, col_b, col_c = st.columns([1, 2, 1])
-        with col_b:
-            if st.button("✅  I Understand — Continue to Dashboard", use_container_width=True, type="primary"):
-                st.session_state["disclaimer_accepted"] = True
-                st.rerun()
+    col_a, col_b, col_c = st.columns([1, 2, 1])
+    with col_b:
+        if st.button("✅  I Understand — Enter Dashboard", use_container_width=True, type="primary"):
+            st.session_state["disclaimer_accepted"] = True
+            st.rerun()
     st.stop()
 
 # ---------------------------------------------------------------------------
